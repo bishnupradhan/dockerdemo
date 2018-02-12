@@ -1,0 +1,287 @@
+version: "3"
+
+services:
+
+    ##
+    # muvi6 : Nginx
+    ##
+
+    muvi6_nginx:
+        build: ./bin/nginx
+        container_name: muvi6_nginx
+        links:
+            - muvi6_fpm
+        restart: always
+        volumes:
+            - "./source/muvi6:/var/www/html"
+            - ./config/nginx/site.conf:/etc/nginx/conf.d/default.conf
+        ports:
+            - 8080:80
+    ##
+    # muvi6 : PHP7:FPM
+    ##
+
+    muvi6_fpm:
+        build: ./bin/fpm
+        container_name: muvi6_fpm
+        links:
+#            - mysql_muvi
+            - rabbit
+        restart: always
+        expose:
+            - 9000
+#        ports:
+#            - "8081:80"
+        volumes:
+            - "./source/muvi6:/var/www/html"
+#            - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+#            - ${VHOSTS_DIR-./config/vhosts}:/etc/apache2/sites-enabled
+#            - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+    ##
+    # content : PHP7-apache
+    ##
+
+    content-muvi6:
+        build: ./bin/webserver
+        container_name: content_muvi6
+        links:
+            - mysql_content
+            - rabbit
+        ports:
+            - "8082:80"
+        restart: always
+        volumes:
+            - "./source/content:/var/www/html"
+#            - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+            - ${VHOSTS_DIR-./config/vhosts/content}:/etc/apache2/sites-enabled
+#            - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+    ##
+    # subscriptions : PHP7-apache
+    ##
+
+    subscriptions-muvi6:
+        build: ./bin/webserver
+        container_name: subscriptions_muvi6
+        links:
+             - mysql_subscription
+             - rabbit
+        ports:
+             - "8083:80"
+        restart: always
+        volumes:
+             - "./source/subscriptions:/var/www/html"
+#             - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+             - ${VHOSTS_DIR-./config/vhosts/subscriptions}:/etc/apache2/sites-enabled
+#             - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+    ##
+    # User : PHP7-apache
+    ##
+
+    user-muvi6:
+        build: ./bin/webserver
+        container_name: user_muvi6
+        links:
+             - mysql_user
+             - rabbit
+        ports:
+             - "8084:80"
+        restart: always
+        volumes:
+             - "./source/user:/var/www/html"
+#             - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+             - ${VHOSTS_DIR-./config/vhosts/user}:/etc/apache2/sites-enabled
+#             - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+##
+# card : PHP7-apache2
+##
+
+    card-muvi6:
+        build: ./bin/webserver
+        container_name: card_muvi6
+        links:
+             - mysql_api
+             - rabbit
+        ports:
+             - "8085:80"
+        restart: always
+        volumes:
+             - "./source/card:/var/www/html"
+    #             - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+             - ${VHOSTS_DIR-./config/vhosts/user}:/etc/apache2/sites-enabled
+    #             - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+##
+# store : PHP7-apache2
+##
+
+    store-muvi6:
+        build: ./bin/webserver
+        container_name: store_muvi6
+        links:
+             - mysql_api
+             - rabbit
+        ports:
+             - "8086:80"
+        restart: always
+        volumes:
+             - "./source/store:/var/www/html"
+    #             - ${PHP_INI-./config/php/php.ini}:/usr/local/etc/php/php.ini
+             - ${VHOSTS_DIR-./config/vhosts/user}:/etc/apache2/sites-enabled
+    #             - ${LOG_DIR-./logs/apache2}:/var/log/apache2
+
+    ##
+    # CardApi : Mysql
+    ##
+
+    mysql_api:
+        build: ./bin/mysql
+        container_name: mysql_api
+        environment:
+             MYSQL_DATABASE: test_api
+             MYSQL_ROOT_PASSWORD: just4now
+        ports:
+             - "3307:3306"
+        restart: always
+        volumes:
+             - ${MYSQL_DATA_DIR-./storage/api_db/data}:/var/lib/mysql
+             - ${MYSQL_LOG_DIR-./storage/api_db/logs}:/var/log/mysql
+             - "./db-dump/api:/docker-entrypoint-initdb.d"
+    ##
+    # Content : Mysql
+    ##
+
+    mysql_content:
+        build: ./bin/mysql
+        container_name: mysql_content
+        environment:
+             MYSQL_DATABASE: test_content
+             MYSQL_ROOT_PASSWORD: just4now
+        ports:
+             - "3308:3306"
+        restart: always
+        volumes:
+             - ${MYSQL_DATA_DIR-./storage/content_db/data}:/var/lib/mysql
+             - ${MYSQL_LOG_DIR-./storage/content_db/logs}:/var/log/mysql
+             - "./db-dump/content:/docker-entrypoint-initdb.d"
+    ##
+    # Subscription : Mysql
+    ##
+
+    mysql_subscription:
+        build: ./bin/mysql
+        container_name: mysql_subscription
+        environment:
+             MYSQL_DATABASE: test_subscription
+             MYSQL_ROOT_PASSWORD: just4now
+        ports:
+             - "3309:3306"
+        restart: always
+        volumes:
+             - ${MYSQL_DATA_DIR-./storage/subscription_db/data}:/var/lib/mysql
+             - ${MYSQL_LOG_DIR-./storage/subscription_db/logs}:/var/log/mysql
+#             - "./db-dump/subscription:/docker-entrypoint-initdb.d"
+    ##
+    # User : Mysql
+    ##
+
+    mysql_user:
+        build: ./bin/mysql
+        container_name: mysql_user
+        environment:
+             MYSQL_DATABASE: test_user
+             MYSQL_ROOT_PASSWORD: just4now
+        ports:
+             - "3340:3306"
+        restart: always
+        volumes:
+             - ${MYSQL_DATA_DIR-./storage/user_db/data}:/var/lib/mysql
+             - ${MYSQL_LOG_DIR-./storage/user_db/logs}:/var/log/mysql
+#             - "./db-dump/user:/docker-entrypoint-initdb.d"
+    ##
+    # MuviApp : Mysql
+    ##
+    # mysql_muvi:
+    #     build: ./bin/mysql
+    #     container_name: mysql_muvi
+    #     environment:
+    #          MYSQL_DATABASE: muviapp
+    #          MYSQL_ROOT_PASSWORD: just4now
+    #     ports:
+    #         - "3306:3306"
+    #     restart: always
+    #     volumes:
+    #         - ${MYSQL_DATA_DIR-./storage/muvi_db/data}:/var/lib/mysql
+    #         - ${MYSQL_LOG_DIR-./storage/muvi_db/logs}:/var/log/mysql
+#            - "./db-dump/muvi:/docker-entrypoint-initdb.d"
+  ##
+  # MuviApp : PhpMyAdmin
+  ##
+    phpmyadmin:
+        container_name: muvi_phpmyadmin
+        environment:
+            MYSQL_USERNAME: root
+            MYSQL_ROOT_PASSWORD: just4now
+            PMA_HOST: mysql_api
+            PMA_PORT: 3306
+        image: phpmyadmin/phpmyadmin
+        links:
+            - mysql_api
+        ports:
+            - "8090:80"
+##
+# RabbitMQ :
+##
+    rabbit:
+        build: ./bin/rabbit
+        container_name: muvi_rabbit
+        environment:
+            - RABBITMQ_DEFAULT_USER=guest
+            - RABBITMQ_DEFAULT_PASS=guest
+        ports:
+            - "15672:15672"
+# ##
+# # Card Api : PHP7-apache2
+# ##
+#
+#     card-api:
+#         build: ./bin/webserver
+#         container_name: card_api
+# #        links:
+# #             - rabbit
+#         ports:
+#              - "8087:80"
+#         restart: always
+#         volumes:
+#              - "./source/microapi_card:/var/www/html"
+#
+# ##
+# # Store Api : PHP7-apache2
+# ##
+#
+#     store-api:
+#         build: ./bin/webserver
+#         container_name: store_api
+# #        links:
+# #             - rabbit
+#         ports:
+#              - "8088:80"
+#         restart: always
+#         volumes:
+#              - "./source/microapi_store:/var/www/html"
+# ##
+# # User Api : PHP7-apache2
+# ##
+#
+#     user-api:
+#         build: ./bin/webserver
+#         container_name: user_api
+# #        links:
+# #             - rabbit
+#         ports:
+#              - "8089:80"
+#         restart: always
+#         volumes:
+#              - "./source/microapi_user:/var/www/html"
