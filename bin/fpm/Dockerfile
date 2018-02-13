@@ -28,7 +28,6 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN pecl install xdebug-2.5.0 && docker-php-ext-enable xdebug
 
 # Other PHP7 Extensions
-
 RUN apt-get -y install libmcrypt-dev  \
                       libsqlite3-dev  \
                       libsqlite3-0  \
