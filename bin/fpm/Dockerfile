@@ -7,8 +7,6 @@ RUN apt-get -y install git \
     && git clone -b 3.0.0 https://github.com/phpredis/phpredis.git /usr/src/php/ext/redis \ 
     && docker-php-ext-install pdo redis xml mcrypt
 
-
-
 # Install important libraries
 RUN apt-get -y install --fix-missing apt-utils  \
                       build-essential  \
@@ -28,6 +26,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN pecl install xdebug-2.5.0 && docker-php-ext-enable xdebug
 
 # Other PHP7 Extensions
+
 RUN apt-get -y install libmcrypt-dev  \
                       libsqlite3-dev  \
                       libsqlite3-0  \
